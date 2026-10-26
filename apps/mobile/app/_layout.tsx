@@ -4,7 +4,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastHost } from '@/components/ToastHost';
 import { SessionProvider, useSession } from '@/lib/session';
-import { useHousehold } from '@/lib/household';
+import { HouseholdProvider, useHousehold } from '@/lib/household';
 
 const queryClient = new QueryClient();
 
@@ -42,8 +42,10 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <AuthGate />
-        <ToastHost />
+        <HouseholdProvider>
+          <AuthGate />
+          <ToastHost />
+        </HouseholdProvider>
       </SessionProvider>
     </QueryClientProvider>
   );

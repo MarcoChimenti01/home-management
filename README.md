@@ -7,7 +7,7 @@ Applicazione per la gestione dei compiti e delle spese di casa. Ogni componente 
 | Area | Stato |
 |------|-------|
 | Monorepo, Supabase, schema DB con RLS | ✅ fatto |
-| Registrazione, accesso, famiglia con codice invito | ✅ fatto |
+| Registrazione, accesso, gruppi (più gruppi per utente, codice invito) | ✅ fatto |
 | Calendario, compiti e reminder (notifiche locali) | ✅ fatto, da provare con dati reali |
 | Cassa comune (versamenti, spese, grafico mensile) | ⏳ da fare (la tab è un segnaposto) |
 | Push verso altri componenti (Edge Function + pg_cron) | ⏳ da fare |
@@ -26,7 +26,7 @@ Applicazione per la gestione dei compiti e delle spese di casa. Ogni componente 
 
 ## Funzionalità (v1)
 
-1. **Accesso:** ogni componente si registra con nome, email e password; poi crea una famiglia o entra con un **codice invito**.
+1. **Accesso e gruppi:** ogni componente si registra con nome, email e password. Può far parte di **più gruppi** (es. "Casa Chimenti", "Casa al mare"): dalla tab **Gruppi** vede l'elenco, cambia il gruppo attivo, ne crea di nuovi, entra con un **codice invito** o esce da un gruppo. Calendario e cassa mostrano i dati del gruppo attivo, che l'app ricorda tra un avvio e l'altro.
 2. **Calendario** con attività giornaliere e **reminder per singola persona**, via notifica:
    - vista mensile con indicatore sui giorni con attività;
    - aggiunta di attività con titolo, orario facoltativo, assegnatario e promemoria (all'ora, 10 min, 1 ora, 1 giorno prima);
@@ -46,11 +46,11 @@ home-management/
 │   └── mobile/
 │       ├── app/                # schermate (Expo Router)
 │       │   ├── (auth)/         # login, registrazione
-│       │   ├── (onboarding)/   # crea/entra in una famiglia
-│       │   └── (tabs)/         # Calendario, Cassa
+│       │   ├── (onboarding)/   # primo gruppo (solo se non se ne ha nessuno)
+│       │   └── (tabs)/         # Calendario, Cassa, Gruppi
 │       └── src/
 │           ├── components/     # AuthScreen, AddTaskModal
-│           └── lib/            # supabase, sessione, famiglia, compiti, notifiche, date
+│           └── lib/            # supabase, sessione, gruppi, compiti, notifiche, date
 ├── supabase/
 │   ├── migrations/             # schema SQL + RLS
 │   ├── config.toml

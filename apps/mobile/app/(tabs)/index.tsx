@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Link } from 'expo-router';
 import { AddTaskModal } from '@/components/AddTaskModal';
 import { showError } from '@/lib/alert';
 import { MONTH_NAMES, WEEKDAYS, monthGrid, monthRange, toDateKey } from '@/lib/dates';
@@ -49,8 +50,15 @@ export default function Calendar() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.household}>{household?.name}</Text>
-      <Text style={styles.code}>Codice invito: {household?.invite_code}</Text>
+      <View style={styles.householdRow}>
+        <View>
+          <Text style={styles.household}>{household?.name}</Text>
+          <Text style={styles.code}>Codice invito: {household?.invite_code}</Text>
+        </View>
+        <Link href="/groups" style={styles.switch}>
+          Cambia gruppo
+        </Link>
+      </View>
 
       <View style={styles.monthRow}>
         <Button title="‹" onPress={() => shiftMonth(-1)} />
@@ -130,6 +138,8 @@ export default function Calendar() {
 
 const styles = StyleSheet.create({
   container: { padding: 16, gap: 8 },
+  householdRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  switch: { color: '#2196F3', fontWeight: '600' },
   household: { fontSize: 22, fontWeight: '700' },
   code: { color: '#666', marginBottom: 8 },
   monthRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

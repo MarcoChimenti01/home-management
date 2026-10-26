@@ -1,33 +1,27 @@
 import { useState } from 'react';
 import { Button, Text, TextInput, View } from 'react-native';
-import { useQueryClient } from '@tanstack/react-query';
 import { AuthScreen, authStyles as styles } from '@/components/AuthScreen';
-import { showError } from '@/lib/alert';
+import { useGroupActions } from '@/lib/household';
 import { supabase } from '@/lib/supabase';
 
+// Mostrata solo a chi non fa ancora parte di nessun gruppo
 export default function HouseholdOnboarding() {
-  const queryClient = useQueryClient();
+  const { create, join } = useGroupActions();
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
 
-  async function run(fn: () => PromiseLike<{ error: { message: string } | null }>) {
+  async function run(action: () => Promise<boolean>) {
     setBusy(true);
-    const { error } = await fn();
+    await action();
     setBusy(false);
-    if (error) return showError(error.message);
-    await queryClient.invalidateQueries({ queryKey: ['household'] });
   }
 
   return (
-    <AuthScreen title="La tua famiglia">
-      <Text style={styles.label}>Crea una nuova famiglia</Text>
+    <AuthScreen title="Il tuo primo gruppo">
+      <Text style={styles.label}>Crea un nuovo gruppo</Text>
       <TextInput style={styles.input} placeholder="Nome (es. Casa Rossi)" value={name} onChangeText={setName} />
-      <Button
-        title="Crea"
-        disabled={busy || !name.trim()}
-        onPress={() => run(() => supabase.rpc('create_household', { p_name: name.trim() }))}
-      />
+      <Button title="Crea" disabled={busy || !name.trim()} onPress={() => run(() => create(name))} />
 
       <Text style={[styles.label, { marginTop: 16 }]}>Oppure entra con un codice</Text>
       <TextInput
@@ -37,11 +31,7 @@ export default function HouseholdOnboarding() {
         value={code}
         onChangeText={setCode}
       />
-      <Button
-        title="Entra"
-        disabled={busy || !code.trim()}
-        onPress={() => run(() => supabase.rpc('join_household', { p_code: code.trim() }))}
-      />
+      <Button title="Entra" disabled={busy || !code.trim()} onPress={() => run(() => join(code))} />
 
       <View style={{ marginTop: 16 }}>
         <Button title="Esci" onPress={() => supabase.auth.signOut()} color="#888" />
