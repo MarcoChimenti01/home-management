@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Home Management",
+    "slug": "home-management",
+    "scheme": "homemanagement",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.homemanagement.app"
+    },
+    "android": {
+      "package": "com.homemanagement.app"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-notifications",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "home-management",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "mobile": "pnpm --filter mobile start",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "db:start": "supabase start",
+    "db:reset": "supabase db reset",
+    "db:types": "supabase gen types typescript --local > packages/shared/src/database.types.ts"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "supabase": "^1.200.0",
+    "typescript": "~5.3.3"
+  }
+}
