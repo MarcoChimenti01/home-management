@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, Text, TextInput, View } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
+import { AuthScreen, authStyles as styles } from '@/components/AuthScreen';
 import { showError } from '@/lib/alert';
 import { supabase } from '@/lib/supabase';
 
@@ -19,9 +20,7 @@ export default function HouseholdOnboarding() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>La tua famiglia</Text>
-
+    <AuthScreen title="La tua famiglia">
       <Text style={styles.label}>Crea una nuova famiglia</Text>
       <TextInput style={styles.input} placeholder="Nome (es. Casa Rossi)" value={name} onChangeText={setName} />
       <Button
@@ -30,7 +29,7 @@ export default function HouseholdOnboarding() {
         onPress={() => run(() => supabase.rpc('create_household', { p_name: name.trim() }))}
       />
 
-      <Text style={[styles.label, { marginTop: 24 }]}>Oppure entra con un codice</Text>
+      <Text style={[styles.label, { marginTop: 16 }]}>Oppure entra con un codice</Text>
       <TextInput
         style={styles.input}
         placeholder="Codice invito"
@@ -44,16 +43,9 @@ export default function HouseholdOnboarding() {
         onPress={() => run(() => supabase.rpc('join_household', { p_code: code.trim() }))}
       />
 
-      <View style={{ marginTop: 32 }}>
-        <Button title="Esci" onPress={() => supabase.auth.signOut()} />
+      <View style={{ marginTop: 16 }}>
+        <Button title="Esci" onPress={() => supabase.auth.signOut()} color="#888" />
       </View>
-    </View>
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 12 },
-  label: { fontSize: 16, fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
-});

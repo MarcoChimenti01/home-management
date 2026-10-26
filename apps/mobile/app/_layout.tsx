@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ToastHost } from '@/components/ToastHost';
 import { SessionProvider, useSession } from '@/lib/session';
 import { useHousehold } from '@/lib/household';
 
@@ -42,6 +43,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
         <AuthGate />
+        <ToastHost />
       </SessionProvider>
     </QueryClientProvider>
   );

@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, Text, TextInput, View } from 'react-native';
+import * as Linking from 'expo-linking';
 import { Link, useRouter } from 'expo-router';
+import { AuthScreen, authStyles as styles } from '@/components/AuthScreen';
 import { showError, showInfo } from '@/lib/alert';
 import { supabase } from '@/lib/supabase';
 
@@ -20,7 +22,12 @@ export default function Register() {
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { display_name: name.trim() } },
+      options: {
+        data: { display_name: name.trim() },
+        // Dove porta il link nell'email: web -> http://localhost:8081/login,
+        // Expo Go -> exp://<ip>:8081/--/login, build -> homemanagement://login
+        emailRedirectTo: Linking.createURL('login'),
+      },
     });
 
     if (error) {
@@ -43,8 +50,7 @@ export default function Register() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Registrati</Text>
+    <AuthScreen title="Registrati">
       <TextInput style={styles.input} placeholder="Nome" value={name} onChangeText={setName} />
       <TextInput
         style={styles.input}
@@ -80,14 +86,6 @@ export default function Register() {
           Accedi
         </Link>
       </View>
-    </View>
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, gap: 12 },
-  title: { fontSize: 28, fontWeight: '700', marginBottom: 12 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
-  footer: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 },
-  link: { color: '#2196F3', fontWeight: '600' },
-});

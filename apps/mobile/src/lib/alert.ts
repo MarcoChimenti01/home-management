@@ -1,10 +1,23 @@
-import { Alert, Platform } from 'react-native';
+// Notifiche a comparsa (toast). Si possono chiamare da qualsiasi punto del codice:
+// il componente <ToastHost /> nel layout principale le mostra.
+export type ToastKind = 'error' | 'info';
+export type Toast = { id: number; kind: ToastKind; message: string };
 
-// Alert.alert non fa nulla sul web: lì si usa window.alert.
-function show(title: string, message: string) {
-  if (Platform.OS === 'web') window.alert(message);
-  else Alert.alert(title, message);
+type Listener = (toast: Toast) => void;
+const listeners = new Set<Listener>();
+let nextId = 1;
+
+function push(kind: ToastKind, message: string) {
+  const toast: Toast = { id: nextId++, kind, message };
+  listeners.forEach((l) => l(toast));
 }
 
-export const showError = (message: string) => show('Errore', message);
-export const showInfo = (message: string) => show('Fatto', message);
+export const showError = (message: string) => push('error', message);
+export const showInfo = (message: string) => push('info', message);
+
+export function subscribeToasts(listener: Listener) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}

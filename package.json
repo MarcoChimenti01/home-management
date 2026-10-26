@@ -4,6 +4,9 @@
   "packageManager": "pnpm@9.15.9",
   "scripts": {
     "mobile": "pnpm --filter mobile start",
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File ./start.ps1",
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./start.ps1",
+    "dev:tunnel": "powershell -NoProfile -ExecutionPolicy Bypass -File ./start.ps1 -Tunnel",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "db:start": "supabase start",
