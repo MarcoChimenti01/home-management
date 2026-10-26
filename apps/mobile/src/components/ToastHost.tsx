@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { subscribeToasts, type Toast } from '@/lib/alert';
-import { colors } from '@/lib/theme';
+import { alertColors, radius } from '@/ui';
 
 const DURATION_MS = 4500;
 
@@ -16,12 +16,17 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isError = toast.kind === 'error';
+  // come .alert-danger / .alert-success di Bootstrap
+  const c = toast.kind === 'error' ? alertColors.danger : alertColors.success;
   return (
     <Animated.View style={{ opacity }}>
-      <Pressable onPress={onDismiss} style={[styles.toast, isError ? styles.error : styles.info]}>
-        <Text style={styles.icon}>{isError ? '!' : '✓'}</Text>
-        <Text style={styles.message}>{toast.message}</Text>
+      <Pressable
+        onPress={onDismiss}
+        style={[styles.toast, { backgroundColor: c.bg, borderColor: c.border }]}
+        accessibilityRole="alert"
+      >
+        <Text style={[styles.message, { color: c.text }]}>{toast.message}</Text>
+        <Text style={[styles.close, { color: c.text }]}>✕</Text>
       </Pressable>
     </Animated.View>
   );
@@ -51,18 +56,17 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    borderRadius: 10,
+    gap: 12,
+    borderWidth: 1,
+    borderRadius: radius.md,
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     shadowColor: '#000',
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.15,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 6,
   },
-  error: { backgroundColor: colors.danger },
-  info: { backgroundColor: colors.success },
-  icon: { color: '#fff', fontWeight: '800', fontSize: 16, width: 18, textAlign: 'center' },
-  message: { color: '#fff', flex: 1 },
+  message: { flex: 1, fontSize: 16 },
+  close: { fontSize: 14 },
 });

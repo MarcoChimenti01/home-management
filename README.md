@@ -21,7 +21,7 @@ Applicazione per la gestione dei compiti e delle spese di casa. Ogni componente 
 - **Notifiche:** `expo-notifications` (locali per i reminder personali, push per quelli inviati ad altri)
 - **Grafici:** `react-native-gifted-charts`
 - **Stato/dati:** TanStack Query + `supabase-js`
-- **Interfaccia:** tema condiviso ispirato a Bootstrap (colori, schede, campi, pulsanti e navigazione), realizzato con componenti React Native compatibili con mobile e web.
+- **Interfaccia:** stile Bootstrap 5 ricreato con componenti React Native, uguale su mobile e web (vedi *Stile e layout*).
 - **Validazione:** zod
 - **Runtime:** Node **22** (richiesto dall'SDK 58), gestito con `fnm` (vedi `.nvmrc`)
 
@@ -32,13 +32,32 @@ Applicazione per la gestione dei compiti e delle spese di casa. Ogni componente 
    - vista mensile con indicatore sui giorni con attività;
    - aggiunta di attività con titolo, orario facoltativo, assegnatario e promemoria (all'ora, 10 min, 1 ora, 1 giorno prima);
    - completamento ed eliminazione delle attività.
-3. **Economia di casa**:
+3. **Navigazione:** menu laterale con Calendario, Cassa e Gruppi, gruppo attivo in evidenza ed Esci. Fisso su schermi larghi (≥ 768 px), a scomparsa col pulsante ☰ su telefono. In alto un **breadcrumb** (`Home › Gruppo › Pagina`) con link cliccabili.
+4. **Economia di casa**:
    - la cassa è comune: nessuna divisione o rimborso tra persone;
    - ogni componente può aggiungere il proprio budget mensile;
    - si registrano le spese con descrizione, data e categoria;
    - riepilogo mensile di budget, spese, saldo e percentuale utilizzata;
    - andamento delle spese per categoria e storico dei movimenti;
    - navigazione tra i mesi e cancellazione dei propri movimenti.
+
+## Stile e layout (Bootstrap)
+
+Bootstrap è una libreria CSS solo per il web, quindi non si usa direttamente: lo **stile Bootstrap 5** è ricreato con componenti React Native in `apps/mobile/src/ui/`, così web e telefono sono identici.
+
+| Componente | Equivalente Bootstrap |
+|------------|-----------------------|
+| `theme.ts` | palette (`primary` #0d6efd, `success`, `danger`…), raggi, spaziature, breakpoint (576/768/992/1200) |
+| `Button` | `.btn`, `.btn-{variante}`, `.btn-outline-*`, `.btn-sm/.btn-lg`, `.w-100` |
+| `Input` | `.form-label` + `.form-control` (+ testo di aiuto ed errore) |
+| `Card`, `CardHeader`, `CardBody` | `.card`, `.card-header`, `.card-body` |
+| `Badge` | `.badge` |
+| `ListGroup`, `ListGroupItem` | `.list-group`, `.list-group-item` |
+| `Breadcrumb` | `.breadcrumb` |
+| `Container`, `Row`, `Col` | griglia a 12 colonne con `sm/md/lg/xl` |
+| `Pills` | gruppo di bottoni a scelta singola |
+
+Layout generale (`components/AppShell.tsx`): navbar scura in alto, menu laterale a pillole (fisso da 768 px in su, "offcanvas" con ☰ sotto), breadcrumb sopra il contenuto. Le notifiche a comparsa usano i colori di `.alert-danger` / `.alert-success`. Per nuove schermate importa da `@/ui`.
 
 ## Struttura repo
 
@@ -51,7 +70,8 @@ home-management/
 │       │   ├── (onboarding)/   # primo gruppo (solo se non se ne ha nessuno)
 │       │   └── (tabs)/         # Calendario, Cassa, Gruppi
 │       └── src/
-│           ├── components/     # AuthScreen, AddTaskModal
+│           ├── ui/             # componenti in stile Bootstrap (Button, Card, Grid…)
+│           ├── components/     # AppShell (navbar + menu + breadcrumb), AuthScreen, AddTaskModal, MembersPanel, ToastHost
 │           └── lib/            # supabase, sessione, gruppi, compiti, notifiche, date
 ├── supabase/
 │   ├── migrations/             # schema SQL + RLS
@@ -74,7 +94,18 @@ home-management/
 - `categories`
 - viste `monthly_summary` e `monthly_expenses_by_category` per la cassa
 
-Tutte le tabelle sono protette da RLS: si vede solo ciò che appartiene alla propria famiglia. La creazione di una famiglia e l'ingresso con codice passano dalle funzioni SQL `create_household` e `join_household`.
+Tutte le tabelle sono protette da RLS: si vede solo ciò che appartiene ai propri gruppi.
+
+### Permessi
+Ogni membro ha un ruolo **per gruppo** (`household_members.role`):
+
+| Ruolo | Vede i dati | Crea/modifica/elimina | Gestisce i membri |
+|-------|:-----------:|:---------------------:|:-----------------:|
+| `admin` (chi crea il gruppo) | ✅ | ✅ | ✅ |
+| `member` (chi entra col codice) | ✅ | ✅ | ❌ |
+| `viewer` (solo lettura) | ✅ | ❌ | ❌ |
+
+I permessi sono applicati dal database (RLS), non solo dall'app. L'amministratore li cambia dalla tab **Gruppi → Membri e permessi**, e può rimuovere un membro. Cambio ruolo, rimozione e uscita passano da funzioni SQL (`set_member_role`, `remove_member`, `leave_household`) che impediscono di lasciare un gruppo senza amministratore. Chi entra con un codice parte come `member`. La creazione di una famiglia e l'ingresso con codice passano dalle funzioni SQL `create_household` e `join_household`.
 
 ## Avvio
 
@@ -111,7 +142,9 @@ Altri comandi: `pnpm typecheck` (controllo dei tipi di tutto il monorepo).
 
 ## Configurazione di Supabase (progetto cloud)
 
-1. **Schema:** in *SQL Editor* esegui il contenuto di `supabase/migrations/20261026000000_init.sql`.
+1. **Schema:** in *SQL Editor* esegui, **in ordine**, i file di `supabase/migrations/`:
+   1. `20261026000000_init.sql` (tabelle, viste, RLS base)
+   2. `20261027000000_roles.sql` (ruoli e permessi per gruppo)
 2. **Email:** in *Authentication → Sign In / Providers → Email*:
    - **Confirm email attivo**: la registrazione invia un'email con il link di conferma;
    - spento in sviluppo, se vuoi evitare il limite di invii (`over_email_send_rate_limit`).
@@ -139,5 +172,5 @@ Altri comandi: `pnpm typecheck` (controllo dei tipi di tutto il monorepo).
 
 1. Push per i reminder verso altri componenti.
 2. Tipi generati da Supabase e test delle policy RLS.
-3. Rifinitura grafica (data leggibile, Calendario centrato su schermi larghi).
+3. Cassa: nascondere i pulsanti di modifica a chi ha il ruolo "solo lettura" (il database già lo impedisce).
 4. Build con EAS e beta su TestFlight / Play interno.

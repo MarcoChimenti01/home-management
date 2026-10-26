@@ -4,7 +4,7 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastHost } from '@/components/ToastHost';
 import { SessionProvider, useSession } from '@/lib/session';
-import { useHousehold } from '@/lib/household';
+import { HouseholdProvider, useHousehold } from '@/lib/household';
 import { colors } from '@/lib/theme';
 
 const queryClient = new QueryClient();

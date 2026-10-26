@@ -5,7 +5,14 @@ import { getPref, setPref } from './prefs';
 import { useSession } from './session';
 import { supabase } from './supabase';
 
-export type Household = { id: string; name: string; invite_code: string };
+export type Role = 'admin' | 'member' | 'viewer';
+export const ROLE_LABELS: Record<Role, string> = {
+  admin: 'Amministratore',
+  member: 'Membro',
+  viewer: 'Solo lettura',
+};
+
+export type Household = { id: string; name: string; invite_code: string; role: Role };
 
 const ACTIVE_KEY = 'activeHouseholdId';
 
@@ -43,11 +50,13 @@ export function HouseholdProvider({ children }: { children: ReactNode }) {
     queryFn: async (): Promise<Household[]> => {
       const { data, error } = await supabase
         .from('household_members')
-        .select('joined_at, households(id, name, invite_code)')
+        .select('role, joined_at, households(id, name, invite_code)')
         .eq('user_id', userId!)
         .order('joined_at', { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((m: any) => m.households as Household).filter(Boolean);
+      return (data ?? [])
+        .filter((m: any) => m.households)
+        .map((m: any) => ({ ...m.households, role: m.role }) as Household);
     },
   });
 
@@ -78,6 +87,13 @@ export function useHousehold() {
   return { data: active, isLoading };
 }
 
+// Permessi dell'utente nel gruppo attivo
+export function usePermissions() {
+  const { active } = useContext(HouseholdContext);
+  const role = active?.role ?? 'viewer';
+  return { role, isAdmin: role === 'admin', canEdit: role === 'admin' || role === 'member' };
+}
+
 // Azioni sui gruppi: creare, entrare con codice, uscire
 export function useGroupActions() {
   const queryClient = useQueryClient();
@@ -93,7 +109,7 @@ export function useGroupActions() {
       return false;
     }
     await refresh();
-    setActiveId((data as Household).id);
+    setActiveId((data as { id: string }).id);
     showInfo(`Gruppo "${name.trim()}" creato.`);
     return true;
   }
@@ -105,17 +121,14 @@ export function useGroupActions() {
       return false;
     }
     await refresh();
-    setActiveId((data as Household).id);
-    showInfo(`Sei entrato in "${(data as Household).name}".`);
+    const joined = data as { id: string; name: string };
+    setActiveId(joined.id);
+    showInfo(`Sei entrato in "${joined.name}".`);
     return true;
   }
 
   async function leave(householdId: string): Promise<boolean> {
-    const { error } = await supabase
-      .from('household_members')
-      .delete()
-      .eq('household_id', householdId)
-      .eq('user_id', session!.user.id);
+    const { error } = await supabase.rpc('leave_household', { p_household: householdId });
     if (error) {
       showError(error.message);
       return false;

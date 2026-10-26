@@ -1,19 +1,18 @@
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BootstrapButton } from '@/components/BootstrapButton';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { showError } from '@/lib/alert';
-import { combine, isValidTime } from '@/lib/dates';
+import { combine, formatDateIt, isValidTime } from '@/lib/dates';
 import type { Member } from '@/lib/members';
 import { useAddTask } from '@/lib/tasks';
-import { colors } from '@/lib/theme';
+import { Button, Card, CardBody, CardHeader, Input, Pills, colors } from '@/ui';
 
-const REMINDERS = [
-  { label: 'Nessuno', minutes: null },
-  { label: "All'ora", minutes: 0 },
-  { label: '10 min prima', minutes: 10 },
-  { label: '1 ora prima', minutes: 60 },
-  { label: '1 giorno prima', minutes: 1440 },
-] as const;
+const REMINDERS: { value: number | null; label: string }[] = [
+  { value: null, label: 'Nessuno' },
+  { value: 0, label: "All'ora" },
+  { value: 10, label: '10 min prima' },
+  { value: 60, label: '1 ora prima' },
+  { value: 1440, label: '1 giorno prima' },
+];
 
 type Props = {
   visible: boolean;
@@ -24,22 +23,7 @@ type Props = {
   meId: string;
 };
 
-function Chip({
-  label,
-  selected,
-  onPress,
-}: {
-  label: string;
-  selected: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
-      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
-    </Pressable>
-  );
-}
-
+// Finestra in stile .modal di Bootstrap
 export function AddTaskModal({ visible, onClose, householdId, dateKey, members, meId }: Props) {
   const addTask = useAddTask();
   const [title, setTitle] = useState('');
@@ -56,17 +40,13 @@ export function AddTaskModal({ visible, onClose, householdId, dateKey, members, 
 
   async function save() {
     const hasTime = time.trim() !== '';
-    if (hasTime && !isValidTime(time.trim()))
-      return showError('Orario non valido: usa il formato HH:MM, es. 18:30.');
-    if (reminder !== null && !hasTime)
-      return showError('Per un promemoria inserisci anche un orario.');
+    if (hasTime && !isValidTime(time.trim())) return showError('Orario non valido: usa il formato HH:MM, es. 18:30.');
+    if (reminder !== null && !hasTime) return showError('Per un promemoria inserisci anche un orario.');
 
     // il promemoria va all'assegnatario, o a chi crea il compito se non c'è
     const reminderUser = assignee ?? meId;
     const remindAt =
-      reminder !== null
-        ? new Date(combine(dateKey, time.trim()).getTime() - reminder * 60_000)
-        : null;
+      reminder !== null ? new Date(combine(dateKey, time.trim()).getTime() - reminder * 60_000) : null;
     if (remindAt && remindAt <= new Date()) return showError('Il promemoria cadrebbe nel passato.');
 
     try {
@@ -87,89 +67,79 @@ export function AddTaskModal({ visible, onClose, householdId, dateKey, members, 
   }
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Nuova attività</Text>
-        <Text style={styles.sub}>Giorno: {dateKey}</Text>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.backdrop}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <ScrollView contentContainerStyle={styles.center} keyboardShouldPersistTaps="handled">
+          <View style={styles.dialog}>
+            <Card>
+              <CardHeader>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.title}>Nuova attività</Text>
+                  <Text style={styles.sub}>{formatDateIt(dateKey)}</Text>
+                </View>
+                <Pressable onPress={onClose} accessibilityLabel="Chiudi">
+                  <Text style={styles.close}>✕</Text>
+                </Pressable>
+              </CardHeader>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Titolo"
-          value={title}
-          onChangeText={setTitle}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Orario (HH:MM, facoltativo)"
-          keyboardType="numbers-and-punctuation"
-          value={time}
-          onChangeText={setTime}
-        />
+              <CardBody style={{ gap: 16 }}>
+                <Input label="Titolo" value={title} onChangeText={setTitle} />
+                <Input
+                  label="Orario"
+                  hint="Facoltativo, formato HH:MM (es. 18:30)"
+                  keyboardType="numbers-and-punctuation"
+                  value={time}
+                  onChangeText={setTime}
+                />
 
-        <Text style={styles.label}>Assegna a</Text>
-        <View style={styles.row}>
-          <Chip label="Nessuno" selected={assignee === null} onPress={() => setAssignee(null)} />
-          {members.map((m) => (
-            <Chip
-              key={m.user_id}
-              label={m.user_id === meId ? `${m.display_name} (io)` : m.display_name}
-              selected={assignee === m.user_id}
-              onPress={() => setAssignee(m.user_id)}
-            />
-          ))}
-        </View>
+                <View style={{ gap: 6 }}>
+                  <Text style={styles.label}>Assegna a</Text>
+                  <Pills<string | null>
+                    value={assignee}
+                    onChange={setAssignee}
+                    items={[
+                      { value: null, label: 'Nessuno' },
+                      ...members.map((m) => ({
+                        value: m.user_id as string | null,
+                        label: m.user_id === meId ? `${m.display_name} (io)` : m.display_name,
+                      })),
+                    ]}
+                  />
+                </View>
 
-        <Text style={styles.label}>Promemoria</Text>
-        <View style={styles.row}>
-          {REMINDERS.map((r) => (
-            <Chip
-              key={r.label}
-              label={r.label}
-              selected={reminder === r.minutes}
-              onPress={() => setReminder(r.minutes)}
-            />
-          ))}
-        </View>
+                <View style={{ gap: 6 }}>
+                  <Text style={styles.label}>Promemoria</Text>
+                  <Pills<number | null> value={reminder} onChange={setReminder} items={REMINDERS} />
+                </View>
+              </CardBody>
 
-        <View style={styles.actions}>
-          <BootstrapButton
-            title={addTask.isPending ? 'Salvataggio…' : 'Salva attività'}
-            onPress={save}
-            disabled={!title.trim() || addTask.isPending}
-          />
-          <BootstrapButton title="Annulla" onPress={onClose} variant="secondary" />
-        </View>
-      </ScrollView>
+              <View style={styles.footer}>
+                <Button title="Annulla" variant="secondary" onPress={onClose} />
+                <Button title="Salva" onPress={save} disabled={!title.trim() || addTask.isPending} />
+              </View>
+            </Card>
+          </View>
+        </ScrollView>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 20, gap: 12, backgroundColor: colors.background, flexGrow: 1 },
-  title: { fontSize: 24, fontWeight: '700', color: colors.dark, marginTop: 12 },
-  sub: { color: colors.muted, marginBottom: 8 },
-  label: { color: colors.dark, fontWeight: '600', marginTop: 8, fontSize: 14 },
-  input: {
-    minHeight: 46,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: colors.white,
-    color: colors.dark,
+  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)' },
+  center: { flexGrow: 1, justifyContent: 'center', alignItems: 'center', padding: 16 },
+  dialog: { width: '100%', maxWidth: 500 },
+  title: { fontSize: 20, fontWeight: '500', color: colors.body },
+  sub: { color: colors.muted },
+  close: { fontSize: 18, color: colors.muted, paddingHorizontal: 4 },
+  label: { fontSize: 16, color: colors.body },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.borderCard,
   },
-  row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 20,
-    paddingVertical: 7,
-    paddingHorizontal: 12,
-    backgroundColor: colors.white,
-  },
-  chipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
-  chipText: { color: colors.dark, fontSize: 13 },
-  chipTextSelected: { color: colors.white, fontWeight: '600' },
-  actions: { gap: 8, marginTop: 16 },
 });

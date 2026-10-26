@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { Link, useRouter } from 'expo-router';
-import { BootstrapButton } from '@/components/BootstrapButton';
-import { AuthScreen, authStyles as styles } from '@/components/AuthScreen';
+import { AuthScreen } from '@/components/AuthScreen';
 import { showError, showInfo } from '@/lib/alert';
 import { supabase } from '@/lib/supabase';
+import { Button, Input, colors } from '@/ui';
 
 export default function Register() {
   const router = useRouter();
@@ -52,37 +52,31 @@ export default function Register() {
 
   return (
     <AuthScreen title="Registrati">
-      <TextInput style={styles.input} placeholder="Nome" value={name} onChangeText={setName} />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
+      <Input label="Nome" value={name} onChangeText={setName} />
+      <Input
+        label="Email"
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password (min. 6 caratteri)"
+      <Input
+        label="Password"
+        hint="Almeno 6 caratteri"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Conferma password"
-        secureTextEntry
-        value={confirm}
-        onChangeText={setConfirm}
-      />
-      <BootstrapButton
-        title={busy ? 'Creazione account…' : 'Crea account'}
+      <Input label="Conferma password" secureTextEntry value={confirm} onChangeText={setConfirm} />
+      <Button
+        title="Crea account"
+        block
         onPress={signUp}
         disabled={busy || !name.trim() || !email || !password || !confirm}
       />
 
       <View style={styles.footer}>
-        <Text>Hai già un account?</Text>
+        <Text style={styles.muted}>Hai già un account?</Text>
         <Link href="/login" style={styles.link}>
           Accedi
         </Link>
@@ -90,3 +84,9 @@ export default function Register() {
     </AuthScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  footer: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  muted: { color: colors.muted },
+  link: { color: colors.primary },
+});

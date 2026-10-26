@@ -14,6 +14,14 @@ export const MONTH_NAMES = [
 ];
 
 export const WEEKDAYS = ['L', 'M', 'M', 'G', 'V', 'S', 'D'];
+const WEEKDAYS_LONG = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+
+// "2026-10-27" -> "martedì 27 ottobre 2026"
+export function formatDateIt(dateKey: string): string {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  return `${WEEKDAYS_LONG[date.getDay()]} ${d} ${MONTH_NAMES[m - 1].toLowerCase()} ${y}`;
+}
 
 // Griglia del mese con settimana che parte da lunedì; null = cella vuota
 export function monthGrid(year: number, month: number): (Date | null)[] {

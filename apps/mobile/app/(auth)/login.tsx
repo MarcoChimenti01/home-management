@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { Link } from 'expo-router';
-import { BootstrapButton } from '@/components/BootstrapButton';
-import { AuthScreen, authStyles as styles } from '@/components/AuthScreen';
+import { AuthScreen } from '@/components/AuthScreen';
 import { showError } from '@/lib/alert';
 import { supabase } from '@/lib/supabase';
+import { Button, Input, colors } from '@/ui';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -20,29 +20,18 @@ export default function Login() {
 
   return (
     <AuthScreen title="Accedi">
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
+      <Input
+        label="Email"
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <BootstrapButton
-        title={busy ? 'Accesso…' : 'Accedi'}
-        onPress={signIn}
-        disabled={busy || !email || !password}
-      />
+      <Input label="Password" secureTextEntry value={password} onChangeText={setPassword} />
+      <Button title="Accedi" block onPress={signIn} disabled={busy || !email || !password} />
 
       <View style={styles.footer}>
-        <Text>Non hai un account?</Text>
+        <Text style={styles.muted}>Non hai un account?</Text>
         <Link href="/register" style={styles.link}>
           Registrati
         </Link>
@@ -50,3 +39,9 @@ export default function Login() {
     </AuthScreen>
   );
 }
+
+const styles = StyleSheet.create({
+  footer: { flexDirection: 'row', justifyContent: 'center', gap: 6 },
+  muted: { color: colors.muted },
+  link: { color: colors.primary },
+});

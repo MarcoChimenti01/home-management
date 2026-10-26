@@ -1,7 +1,21 @@
 import { useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useGroupActions, useHouseholds } from '@/lib/household';
-import { supabase } from '@/lib/supabase';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { MembersPanel } from '@/components/MembersPanel';
+import { ROLE_LABELS, useGroupActions, useHouseholds } from '@/lib/household';
+import {
+  Badge,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Col,
+  Container,
+  Input,
+  ListGroup,
+  ListGroupItem,
+  Row,
+  colors,
+} from '@/ui';
 
 export default function Groups() {
   const { households, active, setActiveId } = useHouseholds();
@@ -19,85 +33,122 @@ export default function Groups() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.inner}>
-        <Text style={styles.title}>I tuoi gruppi</Text>
+    <ScrollView contentContainerStyle={styles.scroll}>
+      <Container>
+        <Text style={styles.h1}>Gruppi</Text>
 
-        {households.map((h) => {
-          const isActive = h.id === active?.id;
-          return (
-            <View key={h.id} style={[styles.card, isActive && styles.cardActive]}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.name}>
-                  {h.name}
-                  {isActive ? '  ·  attivo' : ''}
-                </Text>
-                <Text style={styles.code}>Codice invito: {h.invite_code}</Text>
+        <Row>
+          <Col lg={7}>
+            <Card>
+              <CardHeader>
+                <Text style={styles.cardTitle}>I tuoi gruppi</Text>
+              </CardHeader>
+              <CardBody>
+                <ListGroup>
+                  {households.map((h) => {
+                    const isActive = h.id === active?.id;
+                    return (
+                      <ListGroupItem key={h.id} active={isActive}>
+                        <View style={styles.between}>
+                          <Text style={styles.name}>{h.name}</Text>
+                          {isActive && <Badge variant="primary">Attivo</Badge>}
+                        </View>
+                        <Text style={styles.muted}>Codice invito: {h.invite_code}</Text>
+                        <Text style={styles.muted}>Il tuo ruolo: {ROLE_LABELS[h.role]}</Text>
+
+                        <View style={styles.actions}>
+                          {!isActive && <Button title="Usa" size="sm" onPress={() => setActiveId(h.id)} />}
+                          {confirmLeave === h.id ? (
+                            <>
+                              <Button
+                                title="Conferma uscita"
+                                size="sm"
+                                variant="danger"
+                                disabled={busy}
+                                onPress={() => run(() => leave(h.id), () => setConfirmLeave(null))}
+                              />
+                              <Button
+                                title="Annulla"
+                                size="sm"
+                                variant="secondary"
+                                onPress={() => setConfirmLeave(null)}
+                              />
+                            </>
+                          ) : (
+                            <Button
+                              title="Esci dal gruppo"
+                              size="sm"
+                              variant="secondary"
+                              outline
+                              onPress={() => setConfirmLeave(h.id)}
+                            />
+                          )}
+                        </View>
+                      </ListGroupItem>
+                    );
+                  })}
+                </ListGroup>
+              </CardBody>
+            </Card>
+
+            {active && (
+              <View style={{ marginTop: 16 }}>
+                <MembersPanel householdId={active.id} />
               </View>
-              <View style={styles.actions}>
-                {!isActive && <Button title="Usa" onPress={() => setActiveId(h.id)} />}
-                {confirmLeave === h.id ? (
-                  <Button
-                    title="Conferma uscita"
-                    color="#c62828"
-                    disabled={busy}
-                    onPress={() => run(() => leave(h.id), () => setConfirmLeave(null))}
+            )}
+          </Col>
+
+          <Col lg={5}>
+            <Card>
+              <CardHeader>
+                <Text style={styles.cardTitle}>Crea un nuovo gruppo</Text>
+              </CardHeader>
+              <CardBody>
+                <Input label="Nome" placeholder="Es. Casa al mare" value={name} onChangeText={setName} />
+                <Button
+                  title="Crea gruppo"
+                  block
+                  disabled={busy || !name.trim()}
+                  onPress={() => run(() => create(name), () => setName(''))}
+                />
+              </CardBody>
+            </Card>
+
+            <View style={{ marginTop: 16 }}>
+              <Card>
+                <CardHeader>
+                  <Text style={styles.cardTitle}>Entra con un codice</Text>
+                </CardHeader>
+                <CardBody>
+                  <Input
+                    label="Codice invito"
+                    autoCapitalize="characters"
+                    value={code}
+                    onChangeText={setCode}
                   />
-                ) : (
-                  <Button title="Esci" color="#888" onPress={() => setConfirmLeave(h.id)} />
-                )}
-              </View>
+                  <Button
+                    title="Entra nel gruppo"
+                    variant="success"
+                    block
+                    disabled={busy || !code.trim()}
+                    onPress={() => run(() => join(code), () => setCode(''))}
+                  />
+                </CardBody>
+              </Card>
             </View>
-          );
-        })}
-
-        <Text style={styles.section}>Crea un nuovo gruppo</Text>
-        <TextInput style={styles.input} placeholder="Nome (es. Casa al mare)" value={name} onChangeText={setName} />
-        <Button
-          title="Crea"
-          disabled={busy || !name.trim()}
-          onPress={() => run(() => create(name), () => setName(''))}
-        />
-
-        <Text style={styles.section}>Entra in un gruppo con un codice</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Codice invito"
-          autoCapitalize="characters"
-          value={code}
-          onChangeText={setCode}
-        />
-        <Button
-          title="Entra"
-          disabled={busy || !code.trim()}
-          onPress={() => run(() => join(code), () => setCode(''))}
-        />
-
-        <View style={{ marginTop: 24 }}>
-          <Button title="Esci dall'account" color="#888" onPress={() => supabase.auth.signOut()} />
-        </View>
-      </View>
+          </Col>
+        </Row>
+      </Container>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 16, alignItems: 'center' },
-  inner: { width: '100%', maxWidth: 480, gap: 10 },
-  title: { fontSize: 22, fontWeight: '700' },
-  section: { fontSize: 16, fontWeight: '600', marginTop: 14 },
-  card: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    padding: 12,
-  },
-  cardActive: { borderColor: '#2196F3', borderWidth: 2 },
-  name: { fontSize: 16, fontWeight: '600' },
-  code: { color: '#666', marginTop: 2 },
-  actions: { gap: 6 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12, backgroundColor: '#fff' },
+  scroll: { paddingBottom: 24 },
+  h1: { fontSize: 32, fontWeight: '500', color: colors.body, marginBottom: 16 },
+  cardTitle: { fontSize: 16, fontWeight: '500', color: colors.body },
+  name: { fontSize: 16, fontWeight: '600', color: colors.body, flexShrink: 1 },
+  muted: { color: colors.muted },
+  between: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingTop: 4 },
 });
