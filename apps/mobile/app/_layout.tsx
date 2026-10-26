@@ -4,7 +4,8 @@ import { Slot, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastHost } from '@/components/ToastHost';
 import { SessionProvider, useSession } from '@/lib/session';
-import { HouseholdProvider, useHousehold } from '@/lib/household';
+import { useHousehold } from '@/lib/household';
+import { colors } from '@/lib/theme';
 
 const queryClient = new QueryClient();
 
@@ -30,8 +31,15 @@ function AuthGate() {
 
   if (waiting) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center' }}>
-        <ActivityIndicator />
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator color={colors.primary} />
       </View>
     );
   }

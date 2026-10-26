@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Button, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BootstrapButton } from '@/components/BootstrapButton';
 import { showError } from '@/lib/alert';
 import { combine, isValidTime } from '@/lib/dates';
 import type { Member } from '@/lib/members';
 import { useAddTask } from '@/lib/tasks';
+import { colors } from '@/lib/theme';
 
 const REMINDERS = [
   { label: 'Nessuno', minutes: null },
@@ -22,10 +24,18 @@ type Props = {
   meId: string;
 };
 
-function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+function Chip({
+  label,
+  selected,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+}) {
   return (
     <Pressable onPress={onPress} style={[styles.chip, selected && styles.chipSelected]}>
-      <Text style={selected ? styles.chipTextSelected : undefined}>{label}</Text>
+      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
     </Pressable>
   );
 }
@@ -46,13 +56,17 @@ export function AddTaskModal({ visible, onClose, householdId, dateKey, members, 
 
   async function save() {
     const hasTime = time.trim() !== '';
-    if (hasTime && !isValidTime(time.trim())) return showError('Orario non valido: usa il formato HH:MM, es. 18:30.');
-    if (reminder !== null && !hasTime) return showError('Per un promemoria inserisci anche un orario.');
+    if (hasTime && !isValidTime(time.trim()))
+      return showError('Orario non valido: usa il formato HH:MM, es. 18:30.');
+    if (reminder !== null && !hasTime)
+      return showError('Per un promemoria inserisci anche un orario.');
 
     // il promemoria va all'assegnatario, o a chi crea il compito se non c'è
     const reminderUser = assignee ?? meId;
     const remindAt =
-      reminder !== null ? new Date(combine(dateKey, time.trim()).getTime() - reminder * 60_000) : null;
+      reminder !== null
+        ? new Date(combine(dateKey, time.trim()).getTime() - reminder * 60_000)
+        : null;
     if (remindAt && remindAt <= new Date()) return showError('Il promemoria cadrebbe nel passato.');
 
     try {
@@ -78,7 +92,12 @@ export function AddTaskModal({ visible, onClose, householdId, dateKey, members, 
         <Text style={styles.title}>Nuova attività</Text>
         <Text style={styles.sub}>Giorno: {dateKey}</Text>
 
-        <TextInput style={styles.input} placeholder="Titolo" value={title} onChangeText={setTitle} />
+        <TextInput
+          style={styles.input}
+          placeholder="Titolo"
+          value={title}
+          onChangeText={setTitle}
+        />
         <TextInput
           style={styles.input}
           placeholder="Orario (HH:MM, facoltativo)"
@@ -103,13 +122,22 @@ export function AddTaskModal({ visible, onClose, householdId, dateKey, members, 
         <Text style={styles.label}>Promemoria</Text>
         <View style={styles.row}>
           {REMINDERS.map((r) => (
-            <Chip key={r.label} label={r.label} selected={reminder === r.minutes} onPress={() => setReminder(r.minutes)} />
+            <Chip
+              key={r.label}
+              label={r.label}
+              selected={reminder === r.minutes}
+              onPress={() => setReminder(r.minutes)}
+            />
           ))}
         </View>
 
         <View style={styles.actions}>
-          <Button title="Salva" onPress={save} disabled={!title.trim() || addTask.isPending} />
-          <Button title="Annulla" onPress={onClose} color="#888" />
+          <BootstrapButton
+            title={addTask.isPending ? 'Salvataggio…' : 'Salva attività'}
+            onPress={save}
+            disabled={!title.trim() || addTask.isPending}
+          />
+          <BootstrapButton title="Annulla" onPress={onClose} variant="secondary" />
         </View>
       </ScrollView>
     </Modal>
@@ -117,14 +145,31 @@ export function AddTaskModal({ visible, onClose, householdId, dateKey, members, 
 }
 
 const styles = StyleSheet.create({
-  container: { padding: 24, gap: 12 },
-  title: { fontSize: 24, fontWeight: '700' },
-  sub: { color: '#666' },
-  label: { fontWeight: '600', marginTop: 8 },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 12 },
+  container: { padding: 20, gap: 12, backgroundColor: colors.background, flexGrow: 1 },
+  title: { fontSize: 24, fontWeight: '700', color: colors.dark, marginTop: 12 },
+  sub: { color: colors.muted, marginBottom: 8 },
+  label: { color: colors.dark, fontWeight: '600', marginTop: 8, fontSize: 14 },
+  input: {
+    minHeight: 46,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: colors.white,
+    color: colors.dark,
+  },
   row: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: { borderWidth: 1, borderColor: '#ccc', borderRadius: 16, paddingVertical: 6, paddingHorizontal: 12 },
-  chipSelected: { backgroundColor: '#2196F3', borderColor: '#2196F3' },
-  chipTextSelected: { color: '#fff' },
+  chip: {
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 20,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    backgroundColor: colors.white,
+  },
+  chipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipText: { color: colors.dark, fontSize: 13 },
+  chipTextSelected: { color: colors.white, fontWeight: '600' },
   actions: { gap: 8, marginTop: 16 },
 });

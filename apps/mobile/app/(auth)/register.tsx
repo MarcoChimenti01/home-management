@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Button, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import * as Linking from 'expo-linking';
 import { Link, useRouter } from 'expo-router';
+import { BootstrapButton } from '@/components/BootstrapButton';
 import { AuthScreen, authStyles as styles } from '@/components/AuthScreen';
 import { showError, showInfo } from '@/lib/alert';
 import { supabase } from '@/lib/supabase';
@@ -74,8 +75,8 @@ export default function Register() {
         value={confirm}
         onChangeText={setConfirm}
       />
-      <Button
-        title="Crea account"
+      <BootstrapButton
+        title={busy ? 'Creazione account…' : 'Crea account'}
         onPress={signUp}
         disabled={busy || !name.trim() || !email || !password || !confirm}
       />

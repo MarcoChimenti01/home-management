@@ -9,7 +9,7 @@ Applicazione per la gestione dei compiti e delle spese di casa. Ogni componente 
 | Monorepo, Supabase, schema DB con RLS | ✅ fatto |
 | Registrazione, accesso, gruppi (più gruppi per utente, codice invito) | ✅ fatto |
 | Calendario, compiti e reminder (notifiche locali) | ✅ fatto, da provare con dati reali |
-| Cassa comune (versamenti, spese, grafico mensile) | ⏳ da fare (la tab è un segnaposto) |
+| Cassa comune (budget, spese, riepilogo mensile e categorie) | ✅ fatto |
 | Push verso altri componenti (Edge Function + pg_cron) | ⏳ da fare |
 | Tipi TypeScript generati da Supabase | ⏳ da fare |
 | Build di prova (EAS), TestFlight / Play interno | ⏳ da fare |
@@ -21,6 +21,7 @@ Applicazione per la gestione dei compiti e delle spese di casa. Ogni componente 
 - **Notifiche:** `expo-notifications` (locali per i reminder personali, push per quelli inviati ad altri)
 - **Grafici:** `react-native-gifted-charts`
 - **Stato/dati:** TanStack Query + `supabase-js`
+- **Interfaccia:** tema condiviso ispirato a Bootstrap (colori, schede, campi, pulsanti e navigazione), realizzato con componenti React Native compatibili con mobile e web.
 - **Validazione:** zod
 - **Runtime:** Node **22** (richiesto dall'SDK 58), gestito con `fnm` (vedi `.nvmrc`)
 
@@ -31,12 +32,13 @@ Applicazione per la gestione dei compiti e delle spese di casa. Ogni componente 
    - vista mensile con indicatore sui giorni con attività;
    - aggiunta di attività con titolo, orario facoltativo, assegnatario e promemoria (all'ora, 10 min, 1 ora, 1 giorno prima);
    - completamento ed eliminazione delle attività.
-3. **Economia di casa** *(da implementare)*:
+3. **Economia di casa**:
    - la cassa è comune: nessuna divisione o rimborso tra persone;
-   - ogni mese ogni componente versa una quota nella cassa;
-   - si aggiungono le voci di spesa, che escono dalla cassa;
-   - grafico delle spese mensili con navigazione ai mesi precedenti;
-   - riepilogo del mese: versamenti, spese e saldo della cassa.
+   - ogni componente può aggiungere il proprio budget mensile;
+   - si registrano le spese con descrizione, data e categoria;
+   - riepilogo mensile di budget, spese, saldo e percentuale utilizzata;
+   - andamento delle spese per categoria e storico dei movimenti;
+   - navigazione tra i mesi e cancellazione dei propri movimenti.
 
 ## Struttura repo
 
@@ -135,8 +137,7 @@ Altri comandi: `pnpm typecheck` (controllo dei tipi di tutto il monorepo).
 
 ## Prossimi passi
 
-1. Cassa comune: tabelle già pronte, schermate di versamenti e spese, grafico mensile con mesi precedenti, riepilogo.
-2. Push per i reminder verso altri componenti.
-3. Tipi generati da Supabase e test delle policy RLS.
-4. Rifinitura grafica (data leggibile, Calendario centrato su schermi larghi), stati vuoti, errori.
-5. Build con EAS e beta su TestFlight / Play interno.
+1. Push per i reminder verso altri componenti.
+2. Tipi generati da Supabase e test delle policy RLS.
+3. Rifinitura grafica (data leggibile, Calendario centrato su schermi larghi).
+4. Build con EAS e beta su TestFlight / Play interno.

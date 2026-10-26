@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Button, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
 import { Link } from 'expo-router';
+import { BootstrapButton } from '@/components/BootstrapButton';
 import { AuthScreen, authStyles as styles } from '@/components/AuthScreen';
 import { showError } from '@/lib/alert';
 import { supabase } from '@/lib/supabase';
@@ -34,7 +35,11 @@ export default function Login() {
         value={password}
         onChangeText={setPassword}
       />
-      <Button title="Accedi" onPress={signIn} disabled={busy || !email || !password} />
+      <BootstrapButton
+        title={busy ? 'Accesso…' : 'Accedi'}
+        onPress={signIn}
+        disabled={busy || !email || !password}
+      />
 
       <View style={styles.footer}>
         <Text>Non hai un account?</Text>

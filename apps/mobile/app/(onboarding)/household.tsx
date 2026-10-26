@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Button, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
+import { BootstrapButton } from '@/components/BootstrapButton';
 import { AuthScreen, authStyles as styles } from '@/components/AuthScreen';
 import { useGroupActions } from '@/lib/household';
 import { supabase } from '@/lib/supabase';
@@ -18,10 +20,19 @@ export default function HouseholdOnboarding() {
   }
 
   return (
-    <AuthScreen title="Il tuo primo gruppo">
-      <Text style={styles.label}>Crea un nuovo gruppo</Text>
-      <TextInput style={styles.input} placeholder="Nome (es. Casa Rossi)" value={name} onChangeText={setName} />
-      <Button title="Crea" disabled={busy || !name.trim()} onPress={() => run(() => create(name))} />
+    <AuthScreen title="La tua famiglia">
+      <Text style={styles.label}>Crea una nuova famiglia</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Nome (es. Casa Rossi)"
+        value={name}
+        onChangeText={setName}
+      />
+      <BootstrapButton
+        title={busy ? 'Creazione…' : 'Crea famiglia'}
+        disabled={busy || !name.trim()}
+        onPress={() => run(() => supabase.rpc('create_household', { p_name: name.trim() }))}
+      />
 
       <Text style={[styles.label, { marginTop: 16 }]}>Oppure entra con un codice</Text>
       <TextInput
@@ -31,10 +42,15 @@ export default function HouseholdOnboarding() {
         value={code}
         onChangeText={setCode}
       />
-      <Button title="Entra" disabled={busy || !code.trim()} onPress={() => run(() => join(code))} />
+      <BootstrapButton
+        title={busy ? 'Accesso…' : 'Entra in famiglia'}
+        variant="outline"
+        disabled={busy || !code.trim()}
+        onPress={() => run(() => supabase.rpc('join_household', { p_code: code.trim() }))}
+      />
 
       <View style={{ marginTop: 16 }}>
-        <Button title="Esci" onPress={() => supabase.auth.signOut()} color="#888" />
+        <BootstrapButton title="Esci" onPress={() => supabase.auth.signOut()} variant="secondary" />
       </View>
     </AuthScreen>
   );

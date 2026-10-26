@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { subscribeToasts, type Toast } from '@/lib/alert';
+import { colors } from '@/lib/theme';
 
 const DURATION_MS = 4500;
 
@@ -30,11 +31,7 @@ export function ToastHost() {
   const insets = useSafeAreaInsets();
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  useEffect(
-    () =>
-      subscribeToasts((t) => setToasts((current) => [...current.slice(-2), t])),
-    [],
-  );
+  useEffect(() => subscribeToasts((t) => setToasts((current) => [...current.slice(-2), t])), []);
 
   const dismiss = (id: number) => setToasts((current) => current.filter((t) => t.id !== id));
 
@@ -64,8 +61,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 6,
   },
-  error: { backgroundColor: '#c62828' },
-  info: { backgroundColor: '#2e7d32' },
+  error: { backgroundColor: colors.danger },
+  info: { backgroundColor: colors.success },
   icon: { color: '#fff', fontWeight: '800', fontSize: 16, width: 18, textAlign: 'center' },
   message: { color: '#fff', flex: 1 },
 });
